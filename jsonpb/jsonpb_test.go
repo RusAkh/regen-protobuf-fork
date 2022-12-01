@@ -899,7 +899,6 @@ func BenchmarkUnmarshaling(b *testing.B) {
 		pb          proto.Message
 	}{
 		{"simple flat object", Unmarshaler{}, simpleObjectInputJSON, simpleObject},
-		{"simple pretty object", Unmarshaler{}, simpleObjectInputPrettyJSON, simpleObject},
 	}
 
 	for i := 0; i < b.N; i++ {

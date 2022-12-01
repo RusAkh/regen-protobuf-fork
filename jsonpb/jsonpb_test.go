@@ -891,6 +891,26 @@ func TestUnmarshaling(t *testing.T) {
 	}
 }
 
+func BenchmarkUnmarshaling(b *testing.B) {
+	var unmarshalingTests = []struct {
+		desc        string
+		unmarshaler Unmarshaler
+		json        string
+		pb          proto.Message
+	}{
+		{"simple flat object", Unmarshaler{}, simpleObjectInputJSON, simpleObject},
+		{"simple pretty object", Unmarshaler{}, simpleObjectInputPrettyJSON, simpleObject},
+	}
+
+	for i := 0; i < b.N; i++ {
+		for _, tt := range unmarshalingTests {
+			// Make a new instance of the type of our expected object.
+			p := reflect.New(reflect.TypeOf(tt.pb).Elem()).Interface().(proto.Message)
+			_ = tt.unmarshaler.Unmarshal(strings.NewReader(tt.json), p)
+		}
+	}
+}
+
 func TestUnmarshalNullArray(t *testing.T) {
 	var repeats pb.Repeats
 	if err := UnmarshalString(`{"rBool":null}`, &repeats); err != nil {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/gogo/protobuf/proto"
+	jsoniter "github.com/json-iterator/go"
 )
 
 type B struct {
@@ -46,7 +47,7 @@ func (b B) MarshalJSON() ([]byte, error) {
 
 func (b *B) UnmarshalJSON(data []byte) error {
 	a := &A{}
-	err := json.Unmarshal(data, a)
+	err := jsoniter.Unmarshal(data, a)
 	if err != nil {
 		return err
 	}

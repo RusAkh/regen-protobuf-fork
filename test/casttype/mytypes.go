@@ -30,6 +30,8 @@ package casttype
 
 import (
 	"encoding/json"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 type MyInt32Type int32
@@ -46,7 +48,7 @@ func (this Bytes) MarshalJSON() ([]byte, error) {
 
 func (this *Bytes) UnmarshalJSON(data []byte) error {
 	v := new([]byte)
-	err := json.Unmarshal(data, v)
+	err := jsoniter.Unmarshal(data, v)
 	if err != nil {
 		return err
 	}

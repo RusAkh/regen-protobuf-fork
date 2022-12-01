@@ -53,6 +53,7 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/gogo/protobuf/types"
+	jsoniter "github.com/json-iterator/go"
 )
 
 const secondInNanos = int64(time.Second / time.Nanosecond)
@@ -108,6 +109,7 @@ func defaultResolveAny(typeUrl string) (proto.Message, error) {
 // parsed.
 //
 // The JSON marshaling must follow the proto to JSON specification:
+//
 //	https://developers.google.com/protocol-buffers/docs/proto3#json
 type JSONPBMarshaler interface {
 	MarshalJSONPB(*Marshaler) ([]byte, error)
@@ -119,6 +121,7 @@ type JSONPBMarshaler interface {
 // produced.
 //
 // The JSON unmarshaling must follow the JSON to proto specification:
+//
 //	https://developers.google.com/protocol-buffers/docs/proto3#json
 type JSONPBUnmarshaler interface {
 	UnmarshalJSONPB(*Unmarshaler, []byte) error
@@ -179,7 +182,7 @@ func (m *Marshaler) marshalObject(out *errWriter, v proto.Message, indent, typeU
 		if typeURL != "" {
 			// we are marshaling this object to an Any type
 			var js map[string]*json.RawMessage
-			if err = json.Unmarshal(b, &js); err != nil {
+			if err = jsoniter.Unmarshal(b, &js); err != nil {
 				return fmt.Errorf("type %T produced invalid JSON: %v", v, err)
 			}
 			turl, err := json.Marshal(typeURL)
@@ -837,7 +840,7 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 			// 1.8 changed RawMessage.MarshalJSON from pointer type to value type, see
 			// https://github.com/golang/go/issues/14493
 			var jsonFields map[string]*json.RawMessage
-			if err := json.Unmarshal(inputValue, &jsonFields); err != nil {
+			if err := jsoniter.Unmarshal(inputValue, &jsonFields); err != nil {
 				return err
 			}
 
@@ -847,7 +850,7 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 			}
 
 			var turl string
-			if err := json.Unmarshal([]byte(*val), &turl); err != nil {
+			if err := jsoniter.Unmarshal([]byte(*val), &turl); err != nil {
 				return fmt.Errorf("can't unmarshal Any's '@type': %q", *val)
 			}
 			target.Field(0).SetString(turl)
@@ -924,7 +927,7 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 			return nil
 		case "Struct":
 			var m map[string]json.RawMessage
-			if err := json.Unmarshal(inputValue, &m); err != nil {
+			if err := jsoniter.Unmarshal(inputValue, &m); err != nil {
 				return fmt.Errorf("bad StructValue: %v", err)
 			}
 			target.Field(0).Set(reflect.ValueOf(map[string]*types.Value{}))
@@ -938,7 +941,7 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 			return nil
 		case "ListValue":
 			var s []json.RawMessage
-			if err := json.Unmarshal(inputValue, &s); err != nil {
+			if err := jsoniter.Unmarshal(inputValue, &s); err != nil {
 				return fmt.Errorf("bad ListValue: %v", err)
 			}
 
@@ -959,11 +962,11 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 				target.Field(0).Set(reflect.ValueOf(&types.Value_StringValue{StringValue: v}))
 			} else if v, err := strconv.ParseBool(ivStr); err == nil {
 				target.Field(0).Set(reflect.ValueOf(&types.Value_BoolValue{BoolValue: v}))
-			} else if err := json.Unmarshal(inputValue, &[]json.RawMessage{}); err == nil {
+			} else if err := jsoniter.Unmarshal(inputValue, &[]json.RawMessage{}); err == nil {
 				lv := &types.ListValue{}
 				target.Field(0).Set(reflect.ValueOf(&types.Value_ListValue{ListValue: lv}))
 				return u.unmarshalValue(reflect.ValueOf(lv).Elem(), inputValue, prop)
-			} else if err := json.Unmarshal(inputValue, &map[string]json.RawMessage{}); err == nil {
+			} else if err := jsoniter.Unmarshal(inputValue, &map[string]json.RawMessage{}); err == nil {
 				sv := &types.Struct{}
 				target.Field(0).Set(reflect.ValueOf(&types.Value_StructValue{StructValue: sv}))
 				return u.unmarshalValue(reflect.ValueOf(sv).Elem(), inputValue, prop)
@@ -1028,14 +1031,14 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 		if m, ok := target.Addr().Interface().(interface {
 			UnmarshalJSON([]byte) error
 		}); ok {
-			return json.Unmarshal(inputValue, m)
+			return jsoniter.Unmarshal(inputValue, m)
 		}
 	}
 
 	// Handle nested messages.
 	if targetType.Kind() == reflect.Struct {
 		var jsonFields map[string]json.RawMessage
-		if err := json.Unmarshal(inputValue, &jsonFields); err != nil {
+		if err := jsoniter.Unmarshal(inputValue, &jsonFields); err != nil {
 			return err
 		}
 
@@ -1131,7 +1134,7 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 			if _, ok := outVal.(interface {
 				UnmarshalJSON([]byte) error
 			}); ok {
-				if err := json.Unmarshal(inputValue, outVal); err != nil {
+				if err := jsoniter.Unmarshal(inputValue, outVal); err != nil {
 					return err
 				}
 				target.Set(outRef.Elem())
@@ -1142,7 +1145,7 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 			// https://github.com/golang/go/commit/4302fd0409da5e4f1d71471a6770dacdc3301197
 			// https://github.com/golang/go/commit/c60707b14d6be26bf4213114d13070bff00d0b0a
 			var out []byte
-			if err := json.Unmarshal(inputValue, &out); err != nil {
+			if err := jsoniter.Unmarshal(inputValue, &out); err != nil {
 				return err
 			}
 			target.SetBytes(out)
@@ -1150,7 +1153,7 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 		}
 
 		var slc []json.RawMessage
-		if err := json.Unmarshal(inputValue, &slc); err != nil {
+		if err := jsoniter.Unmarshal(inputValue, &slc); err != nil {
 			return err
 		}
 		if slc != nil {
@@ -1168,7 +1171,7 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 	// Handle maps (whose keys are always strings)
 	if targetType.Kind() == reflect.Map {
 		var mp map[string]json.RawMessage
-		if err := json.Unmarshal(inputValue, &mp); err != nil {
+		if err := jsoniter.Unmarshal(inputValue, &mp); err != nil {
 			return err
 		}
 		if mp != nil {
@@ -1228,12 +1231,12 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 	}
 
 	// Use the encoding/json for parsing other value types.
-	return json.Unmarshal(inputValue, target.Addr().Interface())
+	return jsoniter.Unmarshal(inputValue, target.Addr().Interface())
 }
 
 func unquote(s string) (string, error) {
 	var ret string
-	err := json.Unmarshal([]byte(s), &ret)
+	err := jsoniter.Unmarshal([]byte(s), &ret)
 	return ret, err
 }
 

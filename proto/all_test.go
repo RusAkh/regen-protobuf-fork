@@ -50,6 +50,7 @@ import (
 	pb3 "github.com/gogo/protobuf/proto/proto3_proto"
 	. "github.com/gogo/protobuf/proto/test_proto"
 	descriptorpb "github.com/gogo/protobuf/protoc-gen-gogo/descriptor"
+	jsoniter "github.com/json-iterator/go"
 )
 
 var globalO *Buffer
@@ -1495,7 +1496,7 @@ func TestJSON(t *testing.T) {
 	}
 
 	received := new(MyMessage)
-	if err := json.Unmarshal(b, received); err != nil {
+	if err := jsoniter.Unmarshal(b, received); err != nil {
 		t.Fatalf("json.Unmarshal failed: %v", err)
 	}
 	if !Equal(received, m) {
@@ -1505,7 +1506,7 @@ func TestJSON(t *testing.T) {
 	// Test unmarshalling of JSON with symbolic enum name.
 	const old = `{"count":4,"pet":["bunny","kitty"],"inner":{"host":"cauchy"},"bikeshed":"GREEN"}`
 	received.Reset()
-	if err := json.Unmarshal([]byte(old), received); err != nil {
+	if err := jsoniter.Unmarshal([]byte(old), received); err != nil {
 		t.Fatalf("json.Unmarshal failed: %v", err)
 	}
 	if !Equal(received, m) {

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gogo/protobuf/proto"
+	jsoniter "github.com/json-iterator/go"
 )
 
 type T struct {
@@ -60,7 +61,7 @@ func (gt T) MarshalJSON() ([]byte, error) {
 
 func (gt *T) UnmarshalJSON(data []byte) error {
 	var s string
-	err := json.Unmarshal(data, &s)
+	err := jsoniter.Unmarshal(data, &s)
 	if err != nil {
 		return err
 	}

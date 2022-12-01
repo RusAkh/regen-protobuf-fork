@@ -32,6 +32,8 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 func PutLittleEndianUint64(b []byte, offset int, v uint64) {
@@ -94,7 +96,7 @@ func (uuid Uuid) MarshalJSON() ([]byte, error) {
 
 func (uuid *Uuid) UnmarshalJSON(data []byte) error {
 	var s string
-	err := json.Unmarshal(data, &s)
+	err := jsoniter.Unmarshal(data, &s)
 	if err != nil {
 		return err
 	}

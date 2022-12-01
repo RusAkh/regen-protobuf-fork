@@ -9,7 +9,7 @@ import (
 
 var (
 	_ = json.Marshaler(new(Object))
-	_ = json.Unmarshaler(new(Object))
+	_ = jsoniter.Unmarshaler(new(Object))
 )
 
 func (o *Object) MarshalJSON() ([]byte, error) {

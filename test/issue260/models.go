@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gogo/protobuf/jsonpb"
+	jsoniter "github.com/json-iterator/go"
 )
 
 type Dropped struct {
@@ -13,7 +14,7 @@ type Dropped struct {
 }
 
 func (d *Dropped) UnmarshalJSONPB(u *jsonpb.Unmarshaler, b []byte) error {
-	return json.Unmarshal(b, d)
+	return jsoniter.Unmarshal(b, d)
 }
 
 func (d *Dropped) MarshalJSONPB(*jsonpb.Marshaler) ([]byte, error) {
@@ -32,7 +33,7 @@ type DroppedWithoutGetters struct {
 }
 
 func (d *DroppedWithoutGetters) UnmarshalJSONPB(u *jsonpb.Unmarshaler, b []byte) error {
-	return json.Unmarshal(b, d)
+	return jsoniter.Unmarshal(b, d)
 }
 
 func (d *DroppedWithoutGetters) MarshalJSONPB(*jsonpb.Marshaler) ([]byte, error) {

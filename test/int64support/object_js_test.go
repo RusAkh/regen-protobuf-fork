@@ -28,7 +28,7 @@ func TestMarshaler(t *testing.T) {
 
 func TestUnmarshaler(t *testing.T) {
 	o := new(Object)
-	err := json.Unmarshal(([]byte)("{\"optional_number\": 1}"), o)
+	err := jsoniter.Unmarshal(([]byte)("{\"optional_number\": 1}"), o)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +37,7 @@ func TestUnmarshaler(t *testing.T) {
 	}
 
 	o = new(Object)
-	err = json.Unmarshal(([]byte)("{}"), o)
+	err = jsoniter.Unmarshal(([]byte)("{}"), o)
 	if err != nil {
 		t.Fatal(err)
 	}
